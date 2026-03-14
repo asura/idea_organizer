@@ -1,6 +1,7 @@
 import { GraphCanvas } from './components/Canvas/GraphCanvas.tsx';
 import { MainToolbar } from './components/Toolbar/MainToolbar.tsx';
 import { QuickInput } from './components/Toolbar/QuickInput.tsx';
+import { DetailPanel } from './components/DetailPanel/DetailPanel.tsx';
 import { useGraphData } from './hooks/useGraphData.ts';
 import { useAutoSave } from './hooks/useAutoSave.ts';
 
@@ -40,6 +41,7 @@ function App() {
           </div>
         )}
         <GraphCanvas />
+        <DetailPanel />
       </div>
       <QuickInput />
     </div>

@@ -1,9 +1,14 @@
-import { useCallback } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, type NodeTypes, type EdgeTypes } from '@xyflow/react';
+import { useCallback, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  ReactFlow, Background, Controls, MiniMap,
+  type NodeTypes, type EdgeTypes, type Node, type Edge,
+} from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useGraphStore } from '../../store/graphStore';
+import { useUIStore } from '../../store/uiStore';
 import { CustomNode } from './CustomNode';
 import { CustomEdge } from './CustomEdge';
+import { ContextMenu } from './ContextMenu';
 
 const nodeTypes: NodeTypes = {
   researchNode: CustomNode,
@@ -14,17 +19,57 @@ const edgeTypes: EdgeTypes = {
 };
 
 export function GraphCanvas() {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode } = useGraphStore();
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, removeNode, removeEdge } = useGraphStore();
+  const { openContextMenu, closeContextMenu, contextMenu, clearSelection } = useUIStore();
 
   const handlePaneDoubleClick = useCallback(
-    (event: React.MouseEvent) => {
+    (event: ReactMouseEvent) => {
       addNode(
-        { title: '\u65B0\u3057\u3044\u30CE\u30FC\u30C9', node_type: 'concept', needs_review: true },
+        { title: '新しいノード', node_type: 'concept', needs_review: true },
         { x: event.clientX - 250, y: event.clientY - 100 }
       );
     },
     [addNode]
   );
+
+  const handleNodesDelete = useCallback(
+    (deletedNodes: Node[]) => {
+      for (const node of deletedNodes) {
+        removeNode(node.id);
+      }
+    },
+    [removeNode]
+  );
+
+  const handleEdgesDelete = useCallback(
+    (deletedEdges: Edge[]) => {
+      for (const edge of deletedEdges) {
+        removeEdge(edge.id);
+      }
+    },
+    [removeEdge]
+  );
+
+  const handleNodeContextMenu = useCallback(
+    (event: ReactMouseEvent, node: Node) => {
+      event.preventDefault();
+      openContextMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
+    },
+    [openContextMenu]
+  );
+
+  const handleEdgeContextMenu = useCallback(
+    (event: ReactMouseEvent, edge: Edge) => {
+      event.preventDefault();
+      openContextMenu({ x: event.clientX, y: event.clientY, edgeId: edge.id });
+    },
+    [openContextMenu]
+  );
+
+  const handlePaneClick = useCallback(() => {
+    closeContextMenu();
+    clearSelection();
+  }, [closeContextMenu, clearSelection]);
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
@@ -35,9 +80,15 @@ export function GraphCanvas() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onDoubleClick={handlePaneDoubleClick}
+        onNodesDelete={handleNodesDelete}
+        onEdgesDelete={handleEdgesDelete}
+        onNodeContextMenu={handleNodeContextMenu}
+        onEdgeContextMenu={handleEdgeContextMenu}
+        onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        deleteKeyCode={['Backspace', 'Delete']}
         defaultEdgeOptions={{ type: 'researchEdge' }}
         connectionLineStyle={{ stroke: '#94A3B8', strokeWidth: 2 }}
       >
@@ -57,6 +108,7 @@ export function GraphCanvas() {
           }}
         />
       </ReactFlow>
+      {contextMenu && <ContextMenu />}
     </div>
   );
 }

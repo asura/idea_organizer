@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { useGraphStore } from '../../store/graphStore';
+import { useCallback, useEffect } from 'react';
+import { useGraphStore, useTemporalStore } from '../../store/graphStore';
 import { useUIStore } from '../../store/uiStore';
 import { NODE_ICONS, NODE_TYPE_LABELS } from '../../utils/colors';
 import type { NodeType } from '../../types/node';
@@ -15,7 +15,13 @@ const NODE_BUTTON_COLORS: Record<NodeType, string> = {
 
 export function MainToolbar() {
   const addNode = useGraphStore((s) => s.addNode);
+  const removeNode = useGraphStore((s) => s.removeNode);
+  const removeEdge = useGraphStore((s) => s.removeEdge);
+  const nodes = useGraphStore((s) => s.nodes);
   const toggleQuickInput = useUIStore((s) => s.toggleQuickInput);
+  const selectedNodeId = useUIStore((s) => s.selectedNodeId);
+  const selectedEdgeId = useUIStore((s) => s.selectedEdgeId);
+  const clearSelection = useUIStore((s) => s.clearSelection);
 
   const handleAddNode = useCallback((type: NodeType) => {
     addNode(
@@ -23,6 +29,42 @@ export function MainToolbar() {
       { x: 100 + Math.random() * 400, y: 100 + Math.random() * 400 }
     );
   }, [addNode]);
+
+  const handleDelete = useCallback(() => {
+    if (selectedNodeId) {
+      const node = nodes.find((n) => n.id === selectedNodeId);
+      const label = node?.data?.title || 'ノード';
+      if (!window.confirm(`「${label}」を削除しますか？`)) return;
+      removeNode(selectedNodeId);
+      clearSelection();
+    } else if (selectedEdgeId) {
+      if (!window.confirm('このエッジを削除しますか？')) return;
+      removeEdge(selectedEdgeId);
+      clearSelection();
+    }
+  }, [selectedNodeId, selectedEdgeId, nodes, removeNode, removeEdge, clearSelection]);
+
+  const { undo, redo, pastStates, futureStates } = useTemporalStore();
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
+
+  const hasSelection = selectedNodeId || selectedEdgeId;
 
   return (
     <div style={{
@@ -65,6 +107,65 @@ export function MainToolbar() {
             <span>{NODE_TYPE_LABELS[type]}</span>
           </button>
         ))}
+      </div>
+
+      {/* Delete button (visible when something is selected) */}
+      {hasSelection && (
+        <button
+          onClick={handleDelete}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '4px 10px',
+            border: '1px solid #DC2626',
+            borderRadius: 6,
+            background: '#FEF2F2',
+            color: '#DC2626',
+            fontSize: 12,
+            cursor: 'pointer',
+            fontWeight: 500,
+          }}
+          title="選択中の要素を削除"
+        >
+          <span>削除</span>
+        </button>
+      )}
+
+      {/* Undo/Redo */}
+      <div style={{ display: 'flex', gap: 2, marginLeft: 8 }}>
+        <button
+          onClick={() => undo()}
+          disabled={pastStates.length === 0}
+          style={{
+            padding: '4px 8px',
+            border: '1px solid #D1D5DB',
+            borderRadius: 6,
+            background: pastStates.length === 0 ? '#F3F4F6' : 'white',
+            color: pastStates.length === 0 ? '#D1D5DB' : '#374151',
+            fontSize: 12,
+            cursor: pastStates.length === 0 ? 'default' : 'pointer',
+          }}
+          title="元に戻す (Ctrl+Z)"
+        >
+          ↩
+        </button>
+        <button
+          onClick={() => redo()}
+          disabled={futureStates.length === 0}
+          style={{
+            padding: '4px 8px',
+            border: '1px solid #D1D5DB',
+            borderRadius: 6,
+            background: futureStates.length === 0 ? '#F3F4F6' : 'white',
+            color: futureStates.length === 0 ? '#D1D5DB' : '#374151',
+            fontSize: 12,
+            cursor: futureStates.length === 0 ? 'default' : 'pointer',
+          }}
+          title="やり直し (Ctrl+Shift+Z)"
+        >
+          ↪
+        </button>
       </div>
 
       {/* Spacer */}

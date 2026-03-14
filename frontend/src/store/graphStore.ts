@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { temporal, type TemporalState } from 'zundo';
+import type { StoreApi } from 'zustand';
 import {
   type Node,
   type Edge,
@@ -10,7 +12,7 @@ import {
   type Connection,
 } from '@xyflow/react';
 import type { ResearchNodeData, NodeCreateData, NodeUpdateData } from '../types/node.ts';
-import type { ResearchEdgeData, EdgeCreateData } from '../types/edge.ts';
+import type { ResearchEdgeData, EdgeCreateData, EdgeUpdateData } from '../types/edge.ts';
 import * as nodesApi from '../api/nodes.ts';
 import * as edgesApi from '../api/edges.ts';
 import * as graphApi from '../api/graph.ts';
@@ -58,6 +60,7 @@ interface GraphState {
   updateNode: (uid: string, data: NodeUpdateData) => Promise<void>;
   removeNode: (uid: string) => Promise<void>;
   addEdge: (data: EdgeCreateData) => Promise<void>;
+  updateEdge: (uid: string, data: EdgeUpdateData) => Promise<void>;
   removeEdge: (uid: string) => Promise<void>;
 
   setGraph: (nodes: RFNode[], edges: RFEdge[]) => void;
@@ -67,7 +70,27 @@ interface GraphState {
 let nodeIdCounter = 0;
 const generateTempId = () => `temp-${++nodeIdCounter}`;
 
-export const useGraphStore = create<GraphState>((set, get) => ({
+// Tracked state for undo/redo (nodes and edges only, ignoring positions/selection)
+interface TrackedState {
+  nodes: RFNode[];
+  edges: RFEdge[];
+}
+
+function statesAreEqual(a: TrackedState, b: TrackedState): boolean {
+  // Only track structural changes (add/remove/data), ignore position/dragging/selected
+  if (a.nodes.length !== b.nodes.length || a.edges.length !== b.edges.length) return false;
+  for (let i = 0; i < a.nodes.length; i++) {
+    if (a.nodes[i].id !== b.nodes[i].id) return false;
+    if (a.nodes[i].data !== b.nodes[i].data) return false;
+  }
+  for (let i = 0; i < a.edges.length; i++) {
+    if (a.edges[i].id !== b.edges[i].id) return false;
+    if (a.edges[i].data !== b.edges[i].data) return false;
+  }
+  return true;
+}
+
+export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
   nodes: [],
   edges: [],
   isLoading: false,
@@ -216,6 +239,26 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }
   },
 
+  updateEdge: async (uid, data) => {
+    try {
+      const updated = await edgesApi.updateEdge(uid, data);
+      set({
+        edges: get().edges.map((e) =>
+          e.id === uid ? { ...e, data: { ...e.data, ...updated } } : e
+        ),
+      });
+    } catch (err) {
+      console.error('Failed to update edge:', err);
+      set({
+        edges: get().edges.map((e) =>
+          e.id === uid
+            ? { ...e, data: { ...e.data, ...data, updated_at: new Date().toISOString() } as ResearchEdgeData }
+            : e
+        ),
+      });
+    }
+  },
+
   removeEdge: async (uid) => {
     try {
       await edgesApi.deleteEdge(uid);
@@ -227,4 +270,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
   setGraph: (nodes, edges) => set({ nodes, edges }),
   setLoading: (loading) => set({ isLoading: loading }),
+}), {
+  partialize: (state): TrackedState => ({ nodes: state.nodes, edges: state.edges }),
+  equality: statesAreEqual,
+  limit: 50,
 }));
+
+// Hook for accessing undo/redo temporal state
+export const useTemporalStore = (): TemporalState<TrackedState> =>
+  (useGraphStore as unknown as { temporal: StoreApi<TemporalState<TrackedState>> }).temporal.getState();
