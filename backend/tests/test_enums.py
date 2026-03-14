@@ -1,6 +1,6 @@
 """Tests for enumeration types."""
 
-from backend.models.enums import NodeType, EdgeType, Confidence, EdgeStatus
+from backend.models.enums import Confidence, EdgeStatus, EdgeType, NodeType
 
 
 def test_node_types():
@@ -42,7 +42,7 @@ def test_edge_status():
 def test_node_type_str_comparison():
     """StrEnum values should be directly usable as plain strings."""
     assert NodeType.CONCEPT == "concept"
-    assert "concept" == NodeType.CONCEPT
+    assert NodeType.CONCEPT == "concept"
     assert isinstance(NodeType.CONCEPT, str)
 
 

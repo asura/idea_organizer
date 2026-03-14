@@ -1,7 +1,7 @@
 """API endpoints for research edge CRUD operations."""
 
 from fastapi import APIRouter, HTTPException
-from neomodel import DoesNotExist
+from neomodel import DoesNotExist  # type: ignore[attr-defined]
 
 from backend.schemas.edges import EdgeCreate, EdgeResponse, EdgeUpdate
 from backend.services import edge_service
@@ -14,7 +14,7 @@ def create_edge(data: EdgeCreate) -> EdgeResponse:
     try:
         return edge_service.create_edge(data)
     except DoesNotExist as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail=str(exc)) from None
 
 
 @router.get("", response_model=list[EdgeResponse])
@@ -39,7 +39,7 @@ def get_edge(uid: str) -> EdgeResponse:
     try:
         return edge_service.get_edge(uid)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"Edge '{uid}' not found")
+        raise HTTPException(status_code=404, detail=f"Edge '{uid}' not found") from None
 
 
 @router.patch("/{uid}", response_model=EdgeResponse)
@@ -47,7 +47,7 @@ def update_edge(uid: str, data: EdgeUpdate) -> EdgeResponse:
     try:
         return edge_service.update_edge(uid, data)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"Edge '{uid}' not found")
+        raise HTTPException(status_code=404, detail=f"Edge '{uid}' not found") from None
 
 
 @router.delete("/{uid}", status_code=204)
@@ -55,4 +55,4 @@ def delete_edge(uid: str) -> None:
     try:
         edge_service.delete_edge(uid)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"Edge '{uid}' not found")
+        raise HTTPException(status_code=404, detail=f"Edge '{uid}' not found") from None

@@ -1,8 +1,8 @@
 """Edge CRUD service using neomodel and Cypher queries."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from neomodel import DoesNotExist, db
+from neomodel import db
 
 from backend.analytics.event_log import log_event
 from backend.models.nodes import ResearchNode
@@ -91,7 +91,7 @@ def update_edge(uid: str, data: EdgeUpdate) -> EdgeResponse:
     if not updates:
         return get_edge(uid)
 
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    updates["updated_at"] = datetime.now(UTC).isoformat()
 
     set_clauses = ", ".join(f"r.{k} = ${k}" for k in updates)
     query = f"""

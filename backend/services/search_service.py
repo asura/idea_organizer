@@ -26,9 +26,7 @@ def search_nodes(query: str, limit: int = 50) -> list[NodeResponse]:
             LIMIT $limit
         """
         results, _ = db.cypher_query(cypher, {"query": query, "limit": limit})
-        return [
-            _node_to_response(ResearchNode.inflate(row[0])) for row in results
-        ]
+        return [_node_to_response(ResearchNode.inflate(row[0])) for row in results]
     except Exception:
         # Fallback: case-insensitive CONTAINS
         cypher = """
@@ -40,6 +38,4 @@ def search_nodes(query: str, limit: int = 50) -> list[NodeResponse]:
             LIMIT $limit
         """
         results, _ = db.cypher_query(cypher, {"query": query, "limit": limit})
-        return [
-            _node_to_response(ResearchNode.inflate(row[0])) for row in results
-        ]
+        return [_node_to_response(ResearchNode.inflate(row[0])) for row in results]

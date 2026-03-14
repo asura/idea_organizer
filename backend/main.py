@@ -13,7 +13,7 @@ from backend.config import settings
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Startup: configure Neo4j connection
-    neomodel_config.DATABASE_URL = (
+    neomodel_config.DATABASE_URL = (  # type: ignore[attr-defined]
         f"bolt://{settings.neo4j_user}:{settings.neo4j_password}"
         f"@{settings.neo4j_uri.removeprefix('bolt://')}"
     )

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useGraphStore, type RFNode } from '../../store/graphStore';
 import type { NodeType, NodeUpdateData } from '../../types/node';
 
@@ -21,26 +21,48 @@ interface Props {
   nodeId: string;
 }
 
+/**
+ * Wrapper that reads store data and delegates to the form.
+ * The `key` prop resets the inner form whenever the node identity
+ * or its updated_at timestamp changes (key-based reset pattern).
+ */
 export function NodeEditPanel({ nodeId }: Props) {
   const node = useGraphStore((s) => s.nodes.find((n) => n.id === nodeId)) as RFNode | undefined;
   const updateNode = useGraphStore((s) => s.updateNode);
-  const [form, setForm] = useState<Record<string, unknown>>({});
+
+  if (!node?.data) return null;
+
+  const resetKey = `${nodeId}:${node.data.updated_at}`;
+
+  return (
+    <NodeEditForm
+      key={resetKey}
+      nodeId={nodeId}
+      initialData={{ ...node.data }}
+      node={node}
+      updateNode={updateNode}
+    />
+  );
+}
+
+interface NodeEditFormProps {
+  nodeId: string;
+  initialData: Record<string, unknown>;
+  node: RFNode;
+  updateNode: ReturnType<typeof useGraphStore.getState>['updateNode'];
+}
+
+function NodeEditForm({ nodeId, initialData, node, updateNode }: NodeEditFormProps) {
+  const [form, setForm] = useState<Record<string, unknown>>(initialData);
   const [dirty, setDirty] = useState(false);
 
-  useEffect(() => {
-    if (node?.data) {
-      setForm({ ...node.data });
-      setDirty(false);
-    }
-  }, [nodeId, node?.data?.updated_at]);
-
-  const setField = useCallback((key: string, value: unknown) => {
+  const setField = (key: string, value: unknown) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setDirty(true);
-  }, []);
+  };
 
-  const handleSave = useCallback(() => {
-    if (!node?.data || !dirty) return;
+  const handleSave = () => {
+    if (!node.data || !dirty) return;
     const changes: NodeUpdateData = {};
     for (const [key, value] of Object.entries(form)) {
       if (key === 'uid' || key === 'created_at' || key === 'updated_at') continue;
@@ -52,9 +74,7 @@ export function NodeEditPanel({ nodeId }: Props) {
       updateNode(nodeId, changes);
       setDirty(false);
     }
-  }, [form, node?.data, nodeId, updateNode, dirty]);
-
-  if (!node?.data) return null;
+  };
 
   const nodeType = (form.node_type || node.data.node_type) as NodeType;
 

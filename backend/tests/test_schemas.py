@@ -7,10 +7,10 @@ without any external dependencies (no Neo4j, no DuckDB).
 import pytest
 from pydantic import ValidationError
 
-from backend.schemas.nodes import NodeCreate, NodeUpdate, NodeResponse
-from backend.schemas.edges import EdgeCreate, EdgeUpdate, EdgeResponse
+from backend.schemas.common import FilterParams, PaginationParams
+from backend.schemas.edges import EdgeCreate, EdgeResponse, EdgeUpdate
 from backend.schemas.graph import GraphResponse
-from backend.schemas.common import PaginationParams, FilterParams
+from backend.schemas.nodes import NodeCreate, NodeResponse, NodeUpdate
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ class TestNodeCreate:
             read_status="reading",
         )
         assert node.year == 2024
-        assert len(node.authors) == 2
+        assert node.authors is not None and len(node.authors) == 2
         assert node.venue == "NeurIPS"
         assert node.read_status == "reading"
 

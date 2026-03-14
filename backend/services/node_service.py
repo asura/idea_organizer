@@ -1,8 +1,6 @@
 """Node CRUD service using neomodel."""
 
-from datetime import datetime, timezone
-
-from neomodel import DoesNotExist
+from datetime import UTC, datetime
 
 from backend.analytics.event_log import log_event
 from backend.models.nodes import ResearchNode
@@ -46,18 +44,12 @@ def _node_to_response(node: ResearchNode) -> NodeResponse:
         novelty_claim=node.novelty_claim if node.novelty_claim else None,
         feasibility_note=node.feasibility_note if node.feasibility_note else None,
         priority=(
-            node.priority
-            if node.priority and node.priority != "medium"
-            else None
+            node.priority if node.priority and node.priority != "medium" else None
         ),
         idea_status=node.idea_status if node.idea_status else None,
         # Question-specific
         category=node.category if node.category else None,
-        urgency=(
-            node.urgency
-            if node.urgency and node.urgency != "medium"
-            else None
-        ),
+        urgency=(node.urgency if node.urgency and node.urgency != "medium" else None),
         question_status=node.question_status if node.question_status else None,
         # Evidence-specific
         content=node.content if node.content else None,
@@ -99,7 +91,7 @@ def update_node(uid: str, data: NodeUpdate) -> NodeResponse:
     updates = data.model_dump(exclude_none=True)
     for key, value in updates.items():
         setattr(node, key, value)
-    node.updated_at = datetime.now(timezone.utc)
+    node.updated_at = datetime.now(UTC)
     node.save()
 
     log_event("node", uid, "update", old_data=old_data, new_data=updates)
@@ -143,16 +135,12 @@ def list_nodes(
             offset : offset + limit
         ]
     else:
-        nodes = ResearchNode.nodes.order_by("-created_at")[
-            offset : offset + limit
-        ]
+        nodes = ResearchNode.nodes.order_by("-created_at")[offset : offset + limit]
 
     results = [_node_to_response(n) for n in nodes]
 
     # Client-side tag filter (neomodel doesn't support array contains easily)
     if tags:
-        results = [
-            r for r in results if r.tags and any(t in r.tags for t in tags)
-        ]
+        results = [r for r in results if r.tags and any(t in r.tags for t in tags)]
 
     return results

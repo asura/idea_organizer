@@ -1,7 +1,7 @@
 """API endpoints for research node CRUD operations."""
 
 from fastapi import APIRouter, HTTPException
-from neomodel import DoesNotExist
+from neomodel import DoesNotExist  # type: ignore[attr-defined]
 
 from backend.schemas.nodes import NodeCreate, NodeResponse, NodeUpdate
 from backend.services import node_service
@@ -36,7 +36,7 @@ def get_node(uid: str) -> NodeResponse:
     try:
         return node_service.get_node(uid)
     except DoesNotExist:
-        raise HTTPException(status_code=404, detail=f"Node '{uid}' not found")
+        raise HTTPException(status_code=404, detail=f"Node '{uid}' not found") from None
 
 
 @router.patch("/{uid}", response_model=NodeResponse)
@@ -44,7 +44,7 @@ def update_node(uid: str, data: NodeUpdate) -> NodeResponse:
     try:
         return node_service.update_node(uid, data)
     except DoesNotExist:
-        raise HTTPException(status_code=404, detail=f"Node '{uid}' not found")
+        raise HTTPException(status_code=404, detail=f"Node '{uid}' not found") from None
 
 
 @router.delete("/{uid}", status_code=204)
@@ -52,4 +52,4 @@ def delete_node(uid: str) -> None:
     try:
         node_service.delete_node(uid)
     except DoesNotExist:
-        raise HTTPException(status_code=404, detail=f"Node '{uid}' not found")
+        raise HTTPException(status_code=404, detail=f"Node '{uid}' not found") from None

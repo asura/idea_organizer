@@ -1,7 +1,6 @@
 """API endpoints for graph queries."""
 
-from fastapi import APIRouter, HTTPException, Query
-from neomodel import DoesNotExist
+from fastapi import APIRouter, Query
 
 from backend.schemas.graph import GraphResponse
 from backend.services import graph_service

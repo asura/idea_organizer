@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useGraphStore } from '../../store/graphStore';
 import type { EdgeType, Confidence, EdgeStatus, EdgeUpdateData } from '../../types/edge';
 
@@ -30,28 +30,51 @@ interface Props {
   edgeId: string;
 }
 
+/**
+ * Wrapper that reads store data and delegates to the form.
+ * The `key` prop resets the inner form whenever the edge identity
+ * or its updated_at timestamp changes (key-based reset pattern).
+ */
 export function EdgeEditPanel({ edgeId }: Props) {
   const edge = useGraphStore((s) => s.edges.find((e) => e.id === edgeId));
   const nodes = useGraphStore((s) => s.nodes);
   const updateEdge = useGraphStore((s) => s.updateEdge);
 
-  const [form, setForm] = useState<Record<string, unknown>>({});
+  if (!edge?.data) return null;
+
+  const resetKey = `${edgeId}:${edge.data.updated_at}`;
+
+  return (
+    <EdgeEditForm
+      key={resetKey}
+      edgeId={edgeId}
+      initialData={{ ...edge.data }}
+      edge={edge}
+      nodes={nodes}
+      updateEdge={updateEdge}
+    />
+  );
+}
+
+interface EdgeEditFormProps {
+  edgeId: string;
+  initialData: Record<string, unknown>;
+  edge: NonNullable<ReturnType<typeof useGraphStore.getState>['edges'][number]>;
+  nodes: ReturnType<typeof useGraphStore.getState>['nodes'];
+  updateEdge: ReturnType<typeof useGraphStore.getState>['updateEdge'];
+}
+
+function EdgeEditForm({ edgeId, initialData, edge, nodes, updateEdge }: EdgeEditFormProps) {
+  const [form, setForm] = useState<Record<string, unknown>>(initialData);
   const [dirty, setDirty] = useState(false);
 
-  useEffect(() => {
-    if (edge?.data) {
-      setForm({ ...edge.data });
-      setDirty(false);
-    }
-  }, [edgeId, edge?.data?.updated_at]);
-
-  const setField = useCallback((key: string, value: unknown) => {
+  const setField = (key: string, value: unknown) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setDirty(true);
-  }, []);
+  };
 
-  const handleSave = useCallback(() => {
-    if (!edge?.data || !dirty) return;
+  const handleSave = () => {
+    if (!edge.data || !dirty) return;
     const changes: EdgeUpdateData = {};
     const trackFields = ['edge_type', 'confidence', 'status', 'note', 'evidence'] as const;
     for (const key of trackFields) {
@@ -63,9 +86,7 @@ export function EdgeEditPanel({ edgeId }: Props) {
       updateEdge(edgeId, changes);
       setDirty(false);
     }
-  }, [form, edge?.data, edgeId, updateEdge, dirty]);
-
-  if (!edge?.data) return null;
+  };
 
   const sourceNode = nodes.find((n) => n.id === edge.source);
   const targetNode = nodes.find((n) => n.id === edge.target);

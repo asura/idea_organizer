@@ -89,7 +89,10 @@ class TestGetRecentEvents:
         """Verify that old_data / new_data survive the JSON roundtrip."""
         original = {"title": "Test", "tags": ["a", "b"]}
         event_log.log_event(
-            "node", "n1", "create", new_data=original,
+            "node",
+            "n1",
+            "create",
+            new_data=original,
         )
         events = event_log.get_recent_events(limit=1)
         assert len(events) == 1

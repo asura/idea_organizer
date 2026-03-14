@@ -23,6 +23,26 @@ dev = [
 
 [tool.mypy]
 strict = true
+plugins = []
+
+[[tool.mypy.overrides]]
+module = "neomodel.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "backend.models.*"
+# neomodel properties return Property descriptors, not plain types
+disable_error_code = ["assignment", "arg-type", "comparison-overlap", "attr-defined"]
+
+[[tool.mypy.overrides]]
+module = "backend.services.*"
+# neomodel Property → str mismatches and db module re-exports
+disable_error_code = ["arg-type", "attr-defined", "comparison-overlap", "type-arg"]
+
+[[tool.mypy.overrides]]
+module = "backend.tests.*"
+disallow_untyped_defs = false
+disable_error_code = ["comparison-overlap", "no-untyped-def"]
 
 [tool.ruff]
 target-version = "py312"
