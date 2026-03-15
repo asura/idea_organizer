@@ -11,3 +11,9 @@ class GraphResponse(BaseModel):
 
     nodes: list[NodeResponse]
     edges: list[EdgeResponse]
+
+
+class FilePathRequest(BaseModel):
+    """File path for save/load operations."""
+
+    file_path: str

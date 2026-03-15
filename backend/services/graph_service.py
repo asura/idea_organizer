@@ -1,5 +1,7 @@
 """Graph query service for full graph and neighborhood subgraph retrieval."""
 
+from pathlib import Path
+
 from neomodel import db
 
 from backend.models.nodes import ResearchNode
@@ -67,3 +69,77 @@ def get_neighborhood(uid: str, depth: int = 1) -> GraphResponse:
         edges.append(_rel_to_response(rel, source_uid, target_uid))
 
     return GraphResponse(nodes=nodes, edges=edges)
+
+
+def save_graph_to_file(file_path: str) -> int:
+    """Save the full graph to a JSON file.
+
+    Returns the total number of elements (nodes + edges) saved.
+    """
+    path = Path(file_path)
+    if not path.parent.exists():
+        msg = f"Directory does not exist: {path.parent}"
+        raise ValueError(msg)
+
+    graph = get_full_graph()
+    path.write_text(graph.model_dump_json(indent=2), encoding="utf-8")
+    return len(graph.nodes) + len(graph.edges)
+
+
+def load_graph_from_file(file_path: str) -> GraphResponse:
+    """Load a graph from a JSON file, replacing all existing data."""
+    path = Path(file_path)
+    if not path.is_file():
+        msg = f"File not found: {file_path}"
+        raise FileNotFoundError(msg)
+
+    text = path.read_text(encoding="utf-8")
+    graph = GraphResponse.model_validate_json(text)
+
+    # Clear existing graph
+    db.cypher_query("MATCH (n:ResearchNode) DETACH DELETE n")
+
+    # Create nodes
+    for node_data in graph.nodes:
+        props = node_data.model_dump(exclude={"created_at", "updated_at"})
+        ResearchNode(**props).save()
+        # Restore original timestamps via Cypher
+        db.cypher_query(
+            "MATCH (n:ResearchNode {uid: $uid}) "
+            "SET n.created_at = datetime($created_at), "
+            "    n.updated_at = datetime($updated_at)",
+            {
+                "uid": node_data.uid,
+                "created_at": node_data.created_at,
+                "updated_at": node_data.updated_at,
+            },
+        )
+
+    # Create edges via Cypher to preserve all original properties
+    for edge_data in graph.edges:
+        db.cypher_query(
+            "MATCH (s:ResearchNode {uid: $source_uid}), "
+            "      (t:ResearchNode {uid: $target_uid}) "
+            "CREATE (s)-[r:RESEARCH_EDGE {"
+            "  uid: $uid, edge_type: $edge_type, confidence: $confidence,"
+            "  status: $status, note: $note, evidence: $evidence,"
+            "  created_by_thinking: $created_by_thinking,"
+            "  created_at: datetime($created_at),"
+            "  updated_at: datetime($updated_at)"
+            "}]->(t)",
+            {
+                "source_uid": edge_data.source_uid,
+                "target_uid": edge_data.target_uid,
+                "uid": edge_data.uid,
+                "edge_type": edge_data.edge_type,
+                "confidence": edge_data.confidence,
+                "status": edge_data.status,
+                "note": edge_data.note,
+                "evidence": edge_data.evidence,
+                "created_by_thinking": edge_data.created_by_thinking,
+                "created_at": edge_data.created_at,
+                "updated_at": edge_data.updated_at,
+            },
+        )
+
+    return graph

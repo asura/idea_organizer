@@ -21,3 +21,13 @@ export async function searchNodes(q: string, limit: number = 50): Promise<Resear
   const { data } = await api.get('/search', { params: { q, limit } });
   return data;
 }
+
+export async function saveGraphToFile(filePath: string): Promise<{ message: string }> {
+  const { data } = await api.post('/graph/save', { file_path: filePath });
+  return data;
+}
+
+export async function loadGraphFromFile(filePath: string): Promise<GraphData> {
+  const { data } = await api.post('/graph/load', { file_path: filePath });
+  return data;
+}

@@ -63,6 +63,8 @@ interface GraphState {
   updateEdge: (uid: string, data: EdgeUpdateData) => Promise<void>;
   removeEdge: (uid: string) => Promise<void>;
 
+  saveToFile: (filePath: string) => Promise<string>;
+  loadFromFile: (filePath: string) => Promise<void>;
   setGraph: (nodes: RFNode[], edges: RFEdge[]) => void;
   setLoading: (loading: boolean) => void;
 }
@@ -266,6 +268,27 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
       console.error('Failed to delete edge:', err);
     }
     set({ edges: get().edges.filter((e) => e.id !== uid) });
+  },
+
+  saveToFile: async (filePath) => {
+    const result = await graphApi.saveGraphToFile(filePath);
+    return result.message;
+  },
+
+  loadFromFile: async (filePath) => {
+    set({ isLoading: true, error: null });
+    try {
+      const { nodes, edges } = await graphApi.loadGraphFromFile(filePath);
+      set({
+        nodes: nodes.map(toRFNode),
+        edges: edges.map(toRFEdge),
+        isLoading: false,
+      });
+    } catch (err) {
+      console.error('Failed to load graph from file:', err);
+      set({ isLoading: false, error: 'Failed to load graph from file' });
+      throw err;
+    }
   },
 
   setGraph: (nodes, edges) => set({ nodes, edges }),

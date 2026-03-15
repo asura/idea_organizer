@@ -44,6 +44,31 @@ export function MainToolbar() {
     }
   }, [selectedNodeId, selectedEdgeId, nodes, removeNode, removeEdge, clearSelection]);
 
+  const saveToFile = useGraphStore((s) => s.saveToFile);
+  const loadFromFile = useGraphStore((s) => s.loadFromFile);
+
+  const handleSave = useCallback(async () => {
+    const path = window.prompt('保存先ファイルパス:', '/tmp/graph.json');
+    if (!path) return;
+    try {
+      const msg = await saveToFile(path);
+      window.alert(msg);
+    } catch {
+      window.alert('保存に失敗しました');
+    }
+  }, [saveToFile]);
+
+  const handleLoad = useCallback(async () => {
+    const path = window.prompt('読み込みファイルパス:', '/tmp/graph.json');
+    if (!path) return;
+    if (!window.confirm('現在のグラフは上書きされます。続行しますか？')) return;
+    try {
+      await loadFromFile(path);
+    } catch {
+      window.alert('読み込みに失敗しました');
+    }
+  }, [loadFromFile]);
+
   const { undo, redo, pastStates, futureStates } = useTemporalStore();
 
   // Keyboard shortcuts for undo/redo
@@ -165,6 +190,42 @@ export function MainToolbar() {
           title="やり直し (Ctrl+Shift+Z)"
         >
           ↪
+        </button>
+      </div>
+
+      {/* Save/Load */}
+      <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
+        <button
+          onClick={handleSave}
+          style={{
+            padding: '4px 10px',
+            border: '1px solid #D1D5DB',
+            borderRadius: 6,
+            background: 'white',
+            color: '#374151',
+            fontSize: 12,
+            cursor: 'pointer',
+            fontWeight: 500,
+          }}
+          title="グラフをファイルに保存"
+        >
+          保存
+        </button>
+        <button
+          onClick={handleLoad}
+          style={{
+            padding: '4px 10px',
+            border: '1px solid #D1D5DB',
+            borderRadius: 6,
+            background: 'white',
+            color: '#374151',
+            fontSize: 12,
+            cursor: 'pointer',
+            fontWeight: 500,
+          }}
+          title="ファイルからグラフを読み込み"
+        >
+          読込
         </button>
       </div>
 
