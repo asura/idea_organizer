@@ -52,6 +52,7 @@ cd frontend && npm run dev
 | `i:` | Idea（アイデア） | `i:GNNで因果推論できるか` |
 | `q:` | Question（論点） | `q:サンプル効率の限界は？` |
 | `e:` | Evidence（エビデンス） | `e:Table 3の結果` |
+| `h:` | Hypothesis（仮説） | `h:GNNは因果構造の復元に有効` |
 
 プレフィックスなしの場合は Concept として作成される。
 すべてのノードは `needs_review=true` で作成され、後から詳細を追記できる。
@@ -74,6 +75,7 @@ cd frontend && npm run dev
 | Idea | 🟡 黄 | 研究アイデア |
 | Question | 🔴 赤 | 未解決の論点・疑問 |
 | Evidence | ⚪ 灰 | データ・実験結果・引用 |
+| Hypothesis | 🟣 紫 | 検証可能な仮説の管理 |
 
 ## エッジタイプ
 
@@ -97,6 +99,7 @@ cd frontend && npm run dev
 具体的な使い方のシナリオは [docs/usage-templates.md](docs/usage-templates.md) を参照：
 - **① 課題山積の研究で解決策を整理する場合** — Question→Concept→Idea の流れで課題と解決策をマッピング
 - **② 新規研究の提案をしたい場合** — 核アイデアから放射状に概念・先行研究・論点を展開し、提案書のストーリーを構築
+- **③ 仮説駆動で研究を進める場合** — Hypothesisノードを中心に、根拠・検証計画・結果を構造化
 
 ## アーキテクチャ
 
@@ -125,6 +128,8 @@ Browser (localhost:5173)
 | `DELETE` | `/api/edges/{uid}` | エッジ削除 |
 | `GET` | `/api/graph` | 全グラフ取得 |
 | `GET` | `/api/graph/neighborhood/{uid}` | N-hop 近傍取得 |
+| `POST` | `/api/graph/save` | グラフ保存（名前付き） |
+| `POST` | `/api/graph/load` | グラフ読み込み |
 | `GET` | `/api/search?q=...` | 全文検索 |
 
 ## 開発
@@ -148,11 +153,19 @@ uv run ruff check backend
 - Sprint 2: グラフUI（CustomNode/Edge, Toolbar, QuickInput）
 - Sprint 3: 結合（API client, Store↔API接続, Auto-save）
 
-### Phase 2（次の開発対象）
-- **Sprint 4**: 右ペイン詳細編集、検索UI、フィルタUI、**Undo/Redo**
-- **Sprint 5**: テンプレート、未分類一覧、auto-layout、ビジュアルポリッシュ
+### Phase 2（完了 ✅）
+- 削除・編集UI（右サイドバー詳細パネル、コンテキストメニュー）
+- Undo/Redo（zundo + Zustand temporal middleware）
+
+### Phase 3（完了 ✅）
+- グラフの保存/読み込み（JSON ファイルへの save/load）
+
+### Phase 4（完了 ✅）
+- 仮説（Hypothesis）ノードタイプの追加
+- パフォーマンス計測基盤の導入
 
 ### 今後の構想
+- 検索UI、フィルタUI、テンプレート、auto-layout
 - WebSocket同期、共同編集、AI支援、分析ダッシュボード
 
-詳細な計画は [docs/plans/first_plan.md](docs/plans/first_plan.md) を参照。
+詳細な計画は [docs/plans/](docs/plans/) を参照（Phase01〜Phase04）。

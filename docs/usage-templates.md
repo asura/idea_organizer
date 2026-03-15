@@ -115,9 +115,69 @@ Ctrl+K → e:合成データで因果構造の復元率85%を確認
 
 ---
 
+## ③ 仮説駆動で研究を進める場合
+
+**ゴール**: 仮説を明示的に立て、根拠・検証方法・結果を構造的に管理する
+
+### Step 1: 仮説をHypothesisノードで登録
+
+```
+Ctrl+K → h:GNNは因果構造の復元に有効である
+Ctrl+K → h:介入データなしでも構造学習は可能
+```
+
+Hypothesisノード（🟣紫）には以下の専用フィールドがある：
+- **statement**: 仮説の主張（ノードタイトルと別に詳細を記述可能）
+- **basis**: 仮説の根拠・動機
+- **testability_note**: 検証方法のメモ
+- **confidence_level**: 確信度（low / medium / high）
+- **hypothesis_status**: 状態（draft → testing → supported / refuted / revised）
+
+### Step 2: 根拠となるノードを配置しエッジで接続
+
+```
+Ctrl+K → p:Causal Discovery with GNN (Yu+ 2019)
+Ctrl+K → e:合成データで復元率85%を確認
+Ctrl+K → c:グラフニューラルネットワーク
+```
+
+| 接続元 → 接続先 | エッジタイプ | 確信度 |
+|---|---|---|
+| `p:Yu+ 2019` → `h:GNNは因果構造の復元に有効` | SUPPORTS | medium |
+| `e:復元率85%` → `h:GNNは因果構造の復元に有効` | SUPPORTS | high |
+| `c:GNN` → `h:GNNは因果構造の復元に有効` | RELATES_TO | high |
+
+### Step 3: 検証課題をQuestionノードで可視化
+
+```
+Ctrl+K → q:実データでも同様の復元率が得られるか？
+Ctrl+K → q:ノード数1000以上でスケールするか？
+```
+
+各Questionを仮説に `EVALUATES` エッジで接続する。
+
+### Step 4: 検証結果に応じてステータスを更新
+
+仮説ノードの詳細パネルで `hypothesis_status` を更新：
+- 実験が仮説を支持 → **supported**
+- 反証された → **refuted**
+- 条件付きで修正 → **revised**（新しい仮説ノードを作成し `EXTENDS` で接続）
+
+### Step 5: 仮説の連鎖で研究の進展を記録
+
+```
+h:元の仮説 ──EXTENDS──→ h:修正された仮説
+```
+
+refuted/revised された仮説も削除せず残すことで、研究の試行錯誤の過程を記録できる。
+
+---
+
 ## 共通Tips
 
 - **`needs_review=true`** で雑に作り、後から詳細を書き足す（完璧を求めず量を出す）
 - **確信度を正直につける** — low/medium/highの線種の違いが、根拠の薄い部分を一目で教えてくれる
 - **CONTRADICTS エッジを恐れない** — 矛盾する情報も明示的に残すことで、議論の整理に役立つ
 - **近傍検索 (`GET /api/graph/neighborhood/{uid}`)** で特定ノード周辺だけ深掘りできる
+- **仮説は `draft` で気軽に作る** — status を段階的に更新し、研究の進展を可視化する
+- **グラフの保存 (`POST /api/graph/save`)** で名前付きスナップショットを残し、異なる研究段階を比較できる
