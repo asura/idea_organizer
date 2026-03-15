@@ -26,11 +26,14 @@ export function useAutoSave() {
     }
 
     const timer = setTimeout(() => {
+      const { trackOp } = useGraphStore.getState();
       for (const [id, pos] of changed) {
-        nodesApi.updateNode(id, {
-          position_x: pos.x,
-          position_y: pos.y,
-        }).catch((err: unknown) => console.error('Failed to save position:', err));
+        trackOp(
+          nodesApi.updateNode(id, {
+            position_x: pos.x,
+            position_y: pos.y,
+          })
+        ).catch((err: unknown) => console.error('Failed to save position:', err));
       }
       positionsRef.current = currentPositions;
     }, 1000);

@@ -4,6 +4,28 @@ import { useUIStore } from '../../store/uiStore';
 import { NODE_ICONS, NODE_TYPE_LABELS } from '../../utils/colors';
 import type { NodeType } from '../../types/node';
 
+function SyncStatus() {
+  const pendingOps = useGraphStore((s) => s.pendingOps);
+  const isSyncing = pendingOps > 0;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        fontSize: 11,
+        color: isSyncing ? '#D97706' : '#9CA3AF',
+        userSelect: 'none',
+      }}
+      title={isSyncing ? `${pendingOps} 件の操作を保存中` : '全ての変更が保存されました'}
+    >
+      <span style={{ fontSize: 13 }}>{isSyncing ? '↻' : '✓'}</span>
+      <span>{isSyncing ? '保存中...' : '同期済み'}</span>
+    </div>
+  );
+}
+
 const NODE_TYPES: NodeType[] = ['concept', 'paper', 'idea', 'question', 'evidence', 'hypothesis'];
 const NODE_BUTTON_COLORS: Record<NodeType, string> = {
   concept: '#3B82F6',
@@ -232,6 +254,9 @@ export function MainToolbar() {
 
       {/* Spacer */}
       <div style={{ flex: 1 }} />
+
+      {/* Sync status indicator */}
+      <SyncStatus />
 
       {/* QuickInput toggle */}
       <button

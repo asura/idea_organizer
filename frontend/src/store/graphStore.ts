@@ -48,6 +48,7 @@ interface GraphState {
   edges: RFEdge[];
   isLoading: boolean;
   error: string | null;
+  pendingOps: number;
 
   // React Flow change handlers
   onNodesChange: OnNodesChange;
@@ -67,6 +68,9 @@ interface GraphState {
   loadFromFile: (filePath: string) => Promise<void>;
   setGraph: (nodes: RFNode[], edges: RFEdge[]) => void;
   setLoading: (loading: boolean) => void;
+
+  // Pending operation tracking (for sync status indicator)
+  trackOp: <T>(promise: Promise<T>) => Promise<T>;
 }
 
 let nodeIdCounter = 0;
@@ -108,6 +112,14 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
   edges: [],
   isLoading: false,
   error: null,
+  pendingOps: 0,
+
+  trackOp: <T,>(promise: Promise<T>): Promise<T> => {
+    set({ pendingOps: get().pendingOps + 1 });
+    return promise.finally(() => {
+      set({ pendingOps: Math.max(0, get().pendingOps - 1) });
+    });
+  },
 
   onNodesChange: (changes) => {
     set({ nodes: applyNodeChanges(changes, get().nodes) as RFNode[] });
@@ -176,7 +188,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
         position_x: pos.x,
         position_y: pos.y,
       };
-      const nodeData = await nodesApi.createNode(payload);
+      const nodeData = await get().trackOp(nodesApi.createNode(payload));
       const realNode = toRFNode(nodeData);
       if (position) {
         realNode.position = position;
@@ -207,7 +219,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
       ),
     });
     try {
-      const updated = await nodesApi.updateNode(uid, data);
+      const updated = await get().trackOp(nodesApi.updateNode(uid, data));
       // Reconcile with server response
       set({
         nodes: get().nodes.map((n) =>
@@ -224,7 +236,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
 
   removeNode: async (uid) => {
     try {
-      await nodesApi.deleteNode(uid);
+      await get().trackOp(nodesApi.deleteNode(uid));
     } catch (err) {
       console.error('Failed to delete node:', err);
     }
@@ -260,7 +272,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
     };
     set({ edges: [...get().edges, tempEdge] });
     try {
-      const edgeData = await edgesApi.createEdge(createData);
+      const edgeData = await get().trackOp(edgesApi.createEdge(createData));
       const realEdge = toRFEdge(edgeData);
       // Replace temp edge with real edge
       set({
@@ -274,7 +286,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
 
   updateEdge: async (uid, data) => {
     try {
-      const updated = await edgesApi.updateEdge(uid, data);
+      const updated = await get().trackOp(edgesApi.updateEdge(uid, data));
       set({
         edges: get().edges.map((e) =>
           e.id === uid ? { ...e, data: { ...e.data, ...updated } } : e
@@ -294,7 +306,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
 
   removeEdge: async (uid) => {
     try {
-      await edgesApi.deleteEdge(uid);
+      await get().trackOp(edgesApi.deleteEdge(uid));
     } catch (err) {
       console.error('Failed to delete edge:', err);
     }
@@ -302,7 +314,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
   },
 
   saveToFile: async (filePath) => {
-    const result = await graphApi.saveGraphToFile(filePath);
+    const result = await get().trackOp(graphApi.saveGraphToFile(filePath));
     return result.message;
   },
 
