@@ -4,34 +4,37 @@ import * as nodesApi from '../api/nodes.ts';
 
 export function useAutoSave() {
   const nodes = useGraphStore((s) => s.nodes);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const prevPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
+  const positionsRef = useRef<Record<string, { x: number; y: number }>>({});
 
   useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+    // Extract current positions
+    const currentPositions: Record<string, { x: number; y: number }> = {};
+    for (const node of nodes) {
+      currentPositions[node.id] = { x: node.position.x, y: node.position.y };
     }
 
-    timerRef.current = setTimeout(() => {
-      for (const node of nodes) {
-        const prev = prevPositionsRef.current[node.id];
-        if (!prev || prev.x !== node.position.x || prev.y !== node.position.y) {
-          // Don't save temp nodes (not yet synced with backend)
-          if (!node.id.startsWith('temp-')) {
-            nodesApi.updateNode(node.id, {
-              position_x: node.position.x,
-              position_y: node.position.y,
-            }).catch((err: unknown) => console.error('Failed to save position:', err));
-          }
-        }
-        prevPositionsRef.current[node.id] = { ...node.position };
+    // Find nodes whose position actually changed (skip temp nodes)
+    const changed = Object.entries(currentPositions).filter(([id, pos]) => {
+      const prev = positionsRef.current[id];
+      return prev && (prev.x !== pos.x || prev.y !== pos.y) && !id.startsWith('temp-');
+    });
+
+    if (changed.length === 0) {
+      // Update ref for new nodes (first seen), but don't send requests
+      positionsRef.current = currentPositions;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      for (const [id, pos] of changed) {
+        nodesApi.updateNode(id, {
+          position_x: pos.x,
+          position_y: pos.y,
+        }).catch((err: unknown) => console.error('Failed to save position:', err));
       }
+      positionsRef.current = currentPositions;
     }, 1000);
 
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
+    return () => clearTimeout(timer);
   }, [nodes]);
 }

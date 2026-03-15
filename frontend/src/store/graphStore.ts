@@ -148,52 +148,67 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
 
   addNode: async (createData, position) => {
     const done = perfStart('addNode');
+    const pos = position || { x: Math.random() * 500, y: Math.random() * 500 };
+    // Optimistic: add temp node to UI immediately
+    const tempId = generateTempId();
+    const now = new Date().toISOString();
+    const tempNode: RFNode = {
+      id: tempId,
+      type: 'researchNode',
+      position: pos,
+      data: {
+        uid: tempId,
+        title: createData.title,
+        node_type: createData.node_type || 'concept',
+        needs_review: createData.needs_review ?? true,
+        memo: createData.memo || '',
+        tags: createData.tags || [],
+        position_x: pos.x,
+        position_y: pos.y,
+        created_at: now,
+        updated_at: now,
+      },
+    };
+    set({ nodes: [...get().nodes, tempNode] });
     try {
       const payload: NodeCreateData = {
         ...createData,
-        position_x: position?.x || Math.random() * 500,
-        position_y: position?.y || Math.random() * 500,
+        position_x: pos.x,
+        position_y: pos.y,
       };
       const nodeData = await nodesApi.createNode(payload);
-      const rfNode = toRFNode(nodeData);
+      const realNode = toRFNode(nodeData);
       if (position) {
-        rfNode.position = position;
+        realNode.position = position;
       }
-      set({ nodes: [...get().nodes, rfNode] });
+      // Replace temp node with real node
+      set({
+        nodes: get().nodes.map((n) => n.id === tempId ? realNode : n),
+      });
       done();
-      return rfNode;
+      return realNode;
     } catch (err) {
       console.error('Failed to create node:', err);
-      // Fallback: create locally with temp ID
-      const tempId = generateTempId();
-      const now = new Date().toISOString();
-      const rfNode: RFNode = {
-        id: tempId,
-        type: 'researchNode',
-        position: position || { x: Math.random() * 500, y: Math.random() * 500 },
-        data: {
-          uid: tempId,
-          title: createData.title,
-          node_type: createData.node_type || 'concept',
-          needs_review: createData.needs_review ?? true,
-          memo: createData.memo || '',
-          tags: createData.tags || [],
-          position_x: position?.x || 0,
-          position_y: position?.y || 0,
-          created_at: now,
-          updated_at: now,
-        },
-      };
-      set({ nodes: [...get().nodes, rfNode] });
+      // Keep temp node as fallback
       done();
-      return rfNode;
+      return tempNode;
     }
   },
 
   updateNode: async (uid, data) => {
     const done = perfStart('updateNode');
+    // Optimistic update: UI reflects changes immediately
+    const prevNodes = get().nodes;
+    set({
+      nodes: prevNodes.map((n) =>
+        n.id === uid
+          ? { ...n, data: { ...n.data, ...data, updated_at: new Date().toISOString() } as ResearchNodeData }
+          : n
+      ),
+    });
     try {
       const updated = await nodesApi.updateNode(uid, data);
+      // Reconcile with server response
       set({
         nodes: get().nodes.map((n) =>
           n.id === uid ? { ...n, data: { ...n.data, ...updated } } : n
@@ -201,14 +216,8 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
       });
     } catch (err) {
       console.error('Failed to update node:', err);
-      // Update locally anyway
-      set({
-        nodes: get().nodes.map((n) =>
-          n.id === uid
-            ? { ...n, data: { ...n.data, ...data, updated_at: new Date().toISOString() } as ResearchNodeData }
-            : n
-        ),
-      });
+      // Rollback on failure
+      set({ nodes: prevNodes });
     }
     done();
   },
@@ -227,35 +236,39 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
   },
 
   addEdge: async (createData) => {
+    // Optimistic: add temp edge to UI immediately
+    const tempId = `edge-${Date.now()}`;
+    const now = new Date().toISOString();
+    const tempEdge: RFEdge = {
+      id: tempId,
+      source: createData.source_uid,
+      target: createData.target_uid,
+      type: 'researchEdge',
+      data: {
+        uid: tempId,
+        source_uid: createData.source_uid,
+        target_uid: createData.target_uid,
+        edge_type: createData.edge_type || 'RELATES_TO',
+        confidence: createData.confidence || 'medium',
+        status: createData.status || 'idea',
+        note: createData.note || '',
+        evidence: createData.evidence || '',
+        created_by_thinking: createData.created_by_thinking || 'manual',
+        created_at: now,
+        updated_at: now,
+      },
+    };
+    set({ edges: [...get().edges, tempEdge] });
     try {
       const edgeData = await edgesApi.createEdge(createData);
-      const rfEdge = toRFEdge(edgeData);
-      set({ edges: [...get().edges, rfEdge] });
+      const realEdge = toRFEdge(edgeData);
+      // Replace temp edge with real edge
+      set({
+        edges: get().edges.map((e) => e.id === tempId ? realEdge : e),
+      });
     } catch (err) {
       console.error('Failed to create edge:', err);
-      // Fallback: create locally
-      const tempId = `edge-${Date.now()}`;
-      const now = new Date().toISOString();
-      const rfEdge: RFEdge = {
-        id: tempId,
-        source: createData.source_uid,
-        target: createData.target_uid,
-        type: 'researchEdge',
-        data: {
-          uid: tempId,
-          source_uid: createData.source_uid,
-          target_uid: createData.target_uid,
-          edge_type: createData.edge_type || 'RELATES_TO',
-          confidence: createData.confidence || 'medium',
-          status: createData.status || 'idea',
-          note: createData.note || '',
-          evidence: createData.evidence || '',
-          created_by_thinking: createData.created_by_thinking || 'manual',
-          created_at: now,
-          updated_at: now,
-        },
-      };
-      set({ edges: [...get().edges, rfEdge] });
+      // Keep temp edge as fallback
     }
   },
 
