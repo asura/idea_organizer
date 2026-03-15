@@ -92,6 +92,12 @@ cd frontend && npm run dev
 - **確信度（confidence）** → 線種：high=実線、medium=破線、low=点線
 - **ステータス（status）** → 色：idea=灰、plausible=青、checked=緑、rejected=赤
 
+## 活用テンプレート
+
+具体的な使い方のシナリオは [docs/usage-templates.md](docs/usage-templates.md) を参照：
+- **① 課題山積の研究で解決策を整理する場合** — Question→Concept→Idea の流れで課題と解決策をマッピング
+- **② 新規研究の提案をしたい場合** — 核アイデアから放射状に概念・先行研究・論点を展開し、提案書のストーリーを構築
+
 ## アーキテクチャ
 
 ```
