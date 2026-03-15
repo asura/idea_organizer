@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     neo4j_user: str = "neo4j"
     neo4j_password: str = "password123"
     duckdb_path: str = "./data/events.duckdb"
+    enable_perf_logging: bool = False
 
     model_config = {"env_file": ".env"}
 

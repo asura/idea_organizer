@@ -9,6 +9,7 @@ class NodeType(StrEnum):
     IDEA = "idea"
     QUESTION = "question"
     EVIDENCE = "evidence"
+    HYPOTHESIS = "hypothesis"
 
 
 class EdgeType(StrEnum):
@@ -26,6 +27,14 @@ class Confidence(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+
+
+class HypothesisStatus(StrEnum):
+    DRAFT = "draft"
+    TESTING = "testing"
+    SUPPORTED = "supported"
+    REFUTED = "refuted"
+    REVISED = "revised"
 
 
 class EdgeStatus(StrEnum):

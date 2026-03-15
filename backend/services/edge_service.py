@@ -8,6 +8,7 @@ from backend.analytics.event_log import log_event
 from backend.models.nodes import ResearchNode
 from backend.models.relationships import ResearchRelationship
 from backend.schemas.edges import EdgeCreate, EdgeResponse, EdgeUpdate
+from backend.services.perf import timed_operation
 
 
 def _rel_to_response(
@@ -35,8 +36,9 @@ def create_edge(data: EdgeCreate) -> EdgeResponse:
     Raises:
         DoesNotExist: If either source or target node does not exist.
     """
-    source = ResearchNode.nodes.get(uid=data.source_uid)
-    target = ResearchNode.nodes.get(uid=data.target_uid)
+    with timed_operation("create_edge:fetch_nodes"):
+        source = ResearchNode.nodes.get(uid=data.source_uid)
+        target = ResearchNode.nodes.get(uid=data.target_uid)
 
     props = {
         "edge_type": data.edge_type,
@@ -47,7 +49,8 @@ def create_edge(data: EdgeCreate) -> EdgeResponse:
         "created_by_thinking": data.created_by_thinking,
     }
 
-    rel = source.connected_to.connect(target, props)
+    with timed_operation("create_edge:connect"):
+        rel = source.connected_to.connect(target, props)
 
     log_event(
         "edge",
@@ -72,7 +75,8 @@ def get_edge(uid: str) -> EdgeResponse:
         MATCH (s:ResearchNode)-[r:RESEARCH_EDGE {uid: $uid}]->(t:ResearchNode)
         RETURN s.uid AS source_uid, t.uid AS target_uid, r
     """
-    results, _ = db.cypher_query(query, {"uid": uid})
+    with timed_operation("get_edge:cypher"):
+        results, _ = db.cypher_query(query, {"uid": uid})
     if not results:
         raise ValueError(f"Edge with uid '{uid}' not found")
 
@@ -100,7 +104,8 @@ def update_edge(uid: str, data: EdgeUpdate) -> EdgeResponse:
         RETURN s.uid AS source_uid, t.uid AS target_uid, r
     """
     params = {"uid": uid, **updates}
-    results, _ = db.cypher_query(query, params)
+    with timed_operation("update_edge:cypher"):
+        results, _ = db.cypher_query(query, params)
     if not results:
         raise ValueError(f"Edge with uid '{uid}' not found")
 

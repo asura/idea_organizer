@@ -93,6 +93,20 @@ class TestNodeCreate:
         assert node.content == "Accuracy improved by 5%"
         assert node.linked_excerpt == "Table 3, row 2"
 
+    def test_full_create_hypothesis(self):
+        node = NodeCreate(
+            title="温度が反応速度を決定する",
+            node_type="hypothesis",
+            statement="温度上昇により反応速度は指数的に増加する",
+            basis="アレニウスの式に基づく推論",
+            testability_note="実験室実験で検証可能",
+            confidence_level="medium",
+            hypothesis_status="draft",
+        )
+        assert node.node_type == "hypothesis"
+        assert node.statement == "温度上昇により反応速度は指数的に増加する"
+        assert node.confidence_level == "medium"
+
     def test_optional_fields_default_to_none(self):
         node = NodeCreate(title="Minimal")
         assert node.description is None
@@ -101,6 +115,7 @@ class TestNodeCreate:
         assert node.motivation is None
         assert node.category is None
         assert node.content is None
+        assert node.statement is None
 
     def test_missing_title_raises_validation_error(self):
         with pytest.raises(ValidationError) as exc_info:

@@ -8,6 +8,7 @@ const NODE_TYPE_OPTIONS: { value: NodeType; label: string }[] = [
   { value: 'idea', label: 'アイデア' },
   { value: 'question', label: '論点' },
   { value: 'evidence', label: 'エビデンス' },
+  { value: 'hypothesis', label: '仮説' },
 ];
 
 const IMPORTANCE_OPTIONS = ['high', 'medium', 'low'];
@@ -16,6 +17,8 @@ const URGENCY_OPTIONS = ['high', 'medium', 'low'];
 const RELIABILITY_OPTIONS = ['high', 'medium', 'low'];
 const READ_STATUS_OPTIONS = ['unread', 'skimmed', 'read', 'studied'];
 const STATUS_OPTIONS = ['draft', 'active', 'archived', 'resolved'];
+const HYPOTHESIS_STATUS_OPTIONS = ['draft', 'testing', 'supported', 'refuted', 'revised'];
+const CONFIDENCE_OPTIONS = ['high', 'medium', 'low'];
 
 interface Props {
   nodeId: string;
@@ -141,6 +144,7 @@ function NodeEditForm({ nodeId, initialData, node, updateNode }: NodeEditFormPro
         {nodeType === 'idea' && <IdeaFields form={form} setField={setField} />}
         {nodeType === 'question' && <QuestionFields form={form} setField={setField} />}
         {nodeType === 'evidence' && <EvidenceFields form={form} setField={setField} />}
+        {nodeType === 'hypothesis' && <HypothesisFields form={form} setField={setField} />}
       </div>
 
       {/* Save button */}
@@ -298,6 +302,34 @@ function EvidenceFields({ form, setField }: FieldGroupProps) {
       </Field>
       <Field label="引用箇所">
         <textarea value={(form.linked_excerpt as string) || ''} onChange={(e) => setField('linked_excerpt', e.target.value)} style={{ ...inputStyle, minHeight: 40, resize: 'vertical' }} />
+      </Field>
+    </>
+  );
+}
+
+function HypothesisFields({ form, setField }: FieldGroupProps) {
+  return (
+    <>
+      <Field label="主張">
+        <textarea value={(form.statement as string) || ''} onChange={(e) => setField('statement', e.target.value)} style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} />
+      </Field>
+      <Field label="根拠・背景">
+        <textarea value={(form.basis as string) || ''} onChange={(e) => setField('basis', e.target.value)} style={{ ...inputStyle, minHeight: 50, resize: 'vertical' }} />
+      </Field>
+      <Field label="検証可能性メモ">
+        <textarea value={(form.testability_note as string) || ''} onChange={(e) => setField('testability_note', e.target.value)} style={{ ...inputStyle, minHeight: 40, resize: 'vertical' }} />
+      </Field>
+      <Field label="確信度">
+        <select value={(form.confidence_level as string) || ''} onChange={(e) => setField('confidence_level', e.target.value)} style={inputStyle}>
+          <option value="">--</option>
+          {CONFIDENCE_OPTIONS.map((v) => <option key={v} value={v}>{v}</option>)}
+        </select>
+      </Field>
+      <Field label="仮説ステータス">
+        <select value={(form.hypothesis_status as string) || ''} onChange={(e) => setField('hypothesis_status', e.target.value)} style={inputStyle}>
+          <option value="">--</option>
+          {HYPOTHESIS_STATUS_OPTIONS.map((v) => <option key={v} value={v}>{v}</option>)}
+        </select>
       </Field>
     </>
   );

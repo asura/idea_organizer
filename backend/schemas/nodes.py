@@ -52,6 +52,13 @@ class NodeCreate(BaseModel):
     evidence_date: str | None = None
     linked_excerpt: str | None = None
 
+    # Hypothesis-specific
+    statement: str | None = None
+    basis: str | None = None
+    testability_note: str | None = None
+    confidence_level: str | None = None
+    hypothesis_status: str | None = None
+
 
 class NodeUpdate(BaseModel):
     """Payload for partially updating a research node."""
@@ -101,6 +108,13 @@ class NodeUpdate(BaseModel):
     reliability: str | None = None
     evidence_date: str | None = None
     linked_excerpt: str | None = None
+
+    # Hypothesis-specific
+    statement: str | None = None
+    basis: str | None = None
+    testability_note: str | None = None
+    confidence_level: str | None = None
+    hypothesis_status: str | None = None
 
 
 class NodeResponse(BaseModel):
@@ -154,3 +168,10 @@ class NodeResponse(BaseModel):
     reliability: str | None = None
     evidence_date: str | None = None
     linked_excerpt: str | None = None
+
+    # Hypothesis-specific
+    statement: str | None = None
+    basis: str | None = None
+    testability_note: str | None = None
+    confidence_level: str | None = None
+    hypothesis_status: str | None = None

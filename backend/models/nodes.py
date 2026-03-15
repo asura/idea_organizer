@@ -85,6 +85,15 @@ class ResearchNode(StructuredNode):
     linked_excerpt = StringProperty(default="")
 
     # ------------------------------------------------------------------
+    # Hypothesis-specific
+    # ------------------------------------------------------------------
+    statement = StringProperty(default="")
+    basis = StringProperty(default="")
+    testability_note = StringProperty(default="")
+    confidence_level = StringProperty(default="medium")
+    hypothesis_status = StringProperty(default="draft")
+
+    # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
     connected_to = RelationshipTo(

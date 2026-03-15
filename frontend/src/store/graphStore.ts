@@ -72,6 +72,17 @@ interface GraphState {
 let nodeIdCounter = 0;
 const generateTempId = () => `temp-${++nodeIdCounter}`;
 
+const PERF_ENABLED = import.meta.env.VITE_PERF_LOGGING === 'true';
+
+function perfStart(label: string): () => void {
+  if (!PERF_ENABLED) return () => {};
+  const start = performance.now();
+  return () => {
+    const elapsed = performance.now() - start;
+    console.log(`[PERF:STORE] ${label} (${elapsed.toFixed(1)}ms)`);
+  };
+}
+
 // Tracked state for undo/redo (nodes and edges only, ignoring positions/selection)
 interface TrackedState {
   nodes: RFNode[];
@@ -119,6 +130,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
   },
 
   loadGraph: async () => {
+    const done = perfStart('loadGraph');
     set({ isLoading: true, error: null });
     try {
       const { nodes, edges } = await graphApi.fetchFullGraph();
@@ -131,9 +143,11 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
       console.error('Failed to load graph:', err);
       set({ isLoading: false, error: 'Failed to load graph' });
     }
+    done();
   },
 
   addNode: async (createData, position) => {
+    const done = perfStart('addNode');
     try {
       const payload: NodeCreateData = {
         ...createData,
@@ -146,6 +160,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
         rfNode.position = position;
       }
       set({ nodes: [...get().nodes, rfNode] });
+      done();
       return rfNode;
     } catch (err) {
       console.error('Failed to create node:', err);
@@ -170,11 +185,13 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
         },
       };
       set({ nodes: [...get().nodes, rfNode] });
+      done();
       return rfNode;
     }
   },
 
   updateNode: async (uid, data) => {
+    const done = perfStart('updateNode');
     try {
       const updated = await nodesApi.updateNode(uid, data);
       set({
@@ -193,6 +210,7 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
         ),
       });
     }
+    done();
   },
 
   removeNode: async (uid) => {

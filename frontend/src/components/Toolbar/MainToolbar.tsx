@@ -4,13 +4,14 @@ import { useUIStore } from '../../store/uiStore';
 import { NODE_ICONS, NODE_TYPE_LABELS } from '../../utils/colors';
 import type { NodeType } from '../../types/node';
 
-const NODE_TYPES: NodeType[] = ['concept', 'paper', 'idea', 'question', 'evidence'];
+const NODE_TYPES: NodeType[] = ['concept', 'paper', 'idea', 'question', 'evidence', 'hypothesis'];
 const NODE_BUTTON_COLORS: Record<NodeType, string> = {
   concept: '#3B82F6',
   paper: '#10B981',
   idea: '#F59E0B',
   question: '#EF4444',
   evidence: '#6B7280',
+  hypothesis: '#8B5CF6',
 };
 
 export function MainToolbar() {

@@ -1,6 +1,12 @@
 """Tests for enumeration types."""
 
-from backend.models.enums import Confidence, EdgeStatus, EdgeType, NodeType
+from backend.models.enums import (
+    Confidence,
+    EdgeStatus,
+    EdgeType,
+    HypothesisStatus,
+    NodeType,
+)
 
 
 def test_node_types():
@@ -9,7 +15,8 @@ def test_node_types():
     assert NodeType.IDEA == "idea"
     assert NodeType.QUESTION == "question"
     assert NodeType.EVIDENCE == "evidence"
-    assert len(NodeType) == 5
+    assert NodeType.HYPOTHESIS == "hypothesis"
+    assert len(NodeType) == 6
 
 
 def test_edge_types():
@@ -29,6 +36,15 @@ def test_confidence():
     assert Confidence.MEDIUM == "medium"
     assert Confidence.LOW == "low"
     assert len(Confidence) == 3
+
+
+def test_hypothesis_status():
+    assert HypothesisStatus.DRAFT == "draft"
+    assert HypothesisStatus.TESTING == "testing"
+    assert HypothesisStatus.SUPPORTED == "supported"
+    assert HypothesisStatus.REFUTED == "refuted"
+    assert HypothesisStatus.REVISED == "revised"
+    assert len(HypothesisStatus) == 5
 
 
 def test_edge_status():

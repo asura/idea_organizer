@@ -11,21 +11,24 @@ from backend.schemas.graph import GraphResponse
 from backend.schemas.nodes import NodeResponse
 from backend.services.edge_service import _rel_to_response
 from backend.services.node_service import _node_to_response
+from backend.services.perf import timed_operation
 
 
 def get_full_graph() -> GraphResponse:
     """Return all nodes and edges."""
-    nodes = [_node_to_response(n) for n in ResearchNode.nodes.all()]
+    with timed_operation("get_full_graph:nodes"):
+        nodes = [_node_to_response(n) for n in ResearchNode.nodes.all()]
 
     query = """
         MATCH (s:ResearchNode)-[r:RESEARCH_EDGE]->(t:ResearchNode)
         RETURN s.uid, t.uid, r
     """
-    results, _ = db.cypher_query(query)
-    edges: list[EdgeResponse] = []
-    for source_uid, target_uid, rel_data in results:
-        rel = ResearchRelationship.inflate(rel_data)
-        edges.append(_rel_to_response(rel, source_uid, target_uid))
+    with timed_operation("get_full_graph:edges"):
+        results, _ = db.cypher_query(query)
+        edges: list[EdgeResponse] = []
+        for source_uid, target_uid, rel_data in results:
+            rel = ResearchRelationship.inflate(rel_data)
+            edges.append(_rel_to_response(rel, source_uid, target_uid))
 
     return GraphResponse(nodes=nodes, edges=edges)
 

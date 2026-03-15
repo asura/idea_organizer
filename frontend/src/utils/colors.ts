@@ -8,6 +8,7 @@ export const NODE_COLORS: Record<NodeType, { bg: string; border: string; text: s
   idea: { bg: '#FFFBEB', border: '#F59E0B', text: '#92400E' },
   question: { bg: '#FEF2F2', border: '#EF4444', text: '#991B1B' },
   evidence: { bg: '#F9FAFB', border: '#6B7280', text: '#374151' },
+  hypothesis: { bg: '#F5F3FF', border: '#8B5CF6', text: '#5B21B6' },
 };
 
 // ノードタイプ別アイコン
@@ -17,6 +18,7 @@ export const NODE_ICONS: Record<NodeType, string> = {
   idea: '\u{26A1}',
   question: '\u{2753}',
   evidence: '\u{1F4CC}',
+  hypothesis: '\u{1F9EA}',
 };
 
 // ノードタイプ別の日本語ラベル
@@ -26,6 +28,7 @@ export const NODE_TYPE_LABELS: Record<NodeType, string> = {
   idea: '\u30A2\u30A4\u30C7\u30A2',
   question: '\u8AD6\u70B9',
   evidence: '\u30A8\u30D3\u30C7\u30F3\u30B9',
+  hypothesis: '\u4EEE\u8AAC',
 };
 
 // Confidence → 線のスタイル

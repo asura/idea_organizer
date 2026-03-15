@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from backend.analytics.event_log import log_event
 from backend.models.nodes import ResearchNode
 from backend.schemas.nodes import NodeCreate, NodeResponse, NodeUpdate
+from backend.services.perf import timed_operation
 
 
 def _node_to_response(node: ResearchNode) -> NodeResponse:
@@ -57,13 +58,28 @@ def _node_to_response(node: ResearchNode) -> NodeResponse:
         reliability=node.reliability if node.reliability else None,
         evidence_date=node.evidence_date if node.evidence_date else None,
         linked_excerpt=node.linked_excerpt if node.linked_excerpt else None,
+        # Hypothesis-specific
+        statement=node.statement if node.statement else None,
+        basis=node.basis if node.basis else None,
+        testability_note=node.testability_note if node.testability_note else None,
+        confidence_level=(
+            node.confidence_level
+            if node.confidence_level and node.confidence_level != "medium"
+            else None
+        ),
+        hypothesis_status=(
+            node.hypothesis_status
+            if node.hypothesis_status and node.hypothesis_status != "draft"
+            else None
+        ),
     )
 
 
 def create_node(data: NodeCreate) -> NodeResponse:
     """Create a new research node."""
     props = data.model_dump(exclude_none=True)
-    node = ResearchNode(**props).save()
+    with timed_operation("create_node:save"):
+        node = ResearchNode(**props).save()
 
     log_event("node", node.uid, "create", new_data=props)
     return _node_to_response(node)
@@ -75,7 +91,8 @@ def get_node(uid: str) -> NodeResponse:
     Raises:
         DoesNotExist: If no node with the given uid exists.
     """
-    node = ResearchNode.nodes.get(uid=uid)
+    with timed_operation("get_node:fetch"):
+        node = ResearchNode.nodes.get(uid=uid)
     return _node_to_response(node)
 
 
@@ -85,14 +102,16 @@ def update_node(uid: str, data: NodeUpdate) -> NodeResponse:
     Raises:
         DoesNotExist: If no node with the given uid exists.
     """
-    node = ResearchNode.nodes.get(uid=uid)
+    with timed_operation("update_node:fetch"):
+        node = ResearchNode.nodes.get(uid=uid)
     old_data = {"title": node.title, "node_type": node.node_type}
 
     updates = data.model_dump(exclude_none=True)
     for key, value in updates.items():
         setattr(node, key, value)
     node.updated_at = datetime.now(UTC)
-    node.save()
+    with timed_operation("update_node:save"):
+        node.save()
 
     log_event("node", uid, "update", old_data=old_data, new_data=updates)
     return _node_to_response(node)
