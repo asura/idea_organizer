@@ -23,6 +23,12 @@ def get_neighborhood(
     return graph_service.get_neighborhood(uid, depth=depth)
 
 
+@router.post("/clear", response_model=GraphResponse)
+def clear_graph() -> GraphResponse:
+    """Clear all nodes and edges, starting a fresh graph."""
+    return graph_service.clear_graph()
+
+
 @router.post("/save")
 def save_graph(req: FilePathRequest) -> dict[str, str]:
     """Save the current graph to a JSON file."""

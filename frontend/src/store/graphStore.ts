@@ -66,6 +66,7 @@ interface GraphState {
 
   saveToFile: (filePath: string) => Promise<string>;
   loadFromFile: (filePath: string) => Promise<void>;
+  clearGraph: () => Promise<void>;
   setGraph: (nodes: RFNode[], edges: RFEdge[]) => void;
   setLoading: (loading: boolean) => void;
 
@@ -330,6 +331,18 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
     } catch (err) {
       console.error('Failed to load graph from file:', err);
       set({ isLoading: false, error: 'Failed to load graph from file' });
+      throw err;
+    }
+  },
+
+  clearGraph: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      await graphApi.clearGraph();
+      set({ nodes: [], edges: [], isLoading: false });
+    } catch (err) {
+      console.error('Failed to clear graph:', err);
+      set({ isLoading: false, error: 'Failed to clear graph' });
       throw err;
     }
   },

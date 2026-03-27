@@ -67,8 +67,21 @@ export function MainToolbar() {
     }
   }, [selectedNodeId, selectedEdgeId, nodes, removeNode, removeEdge, clearSelection]);
 
+  const clearGraph = useGraphStore((s) => s.clearGraph);
   const saveToFile = useGraphStore((s) => s.saveToFile);
   const loadFromFile = useGraphStore((s) => s.loadFromFile);
+
+  const { undo, redo, pastStates, futureStates, clear: clearHistory } = useTemporalStore();
+
+  const handleNewGraph = useCallback(async () => {
+    if (!window.confirm('現在のグラフはすべて削除されます。保存していない場合はデータが失われます。続行しますか？')) return;
+    try {
+      await clearGraph();
+      clearHistory();
+    } catch {
+      window.alert('初期化に失敗しました');
+    }
+  }, [clearGraph, clearHistory]);
 
   const handleSave = useCallback(async () => {
     const path = window.prompt('保存先ファイルパス:', '/tmp/graph.json');
@@ -91,8 +104,6 @@ export function MainToolbar() {
       window.alert('読み込みに失敗しました');
     }
   }, [loadFromFile]);
-
-  const { undo, redo, pastStates, futureStates } = useTemporalStore();
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -216,8 +227,24 @@ export function MainToolbar() {
         </button>
       </div>
 
-      {/* Save/Load */}
+      {/* New Graph / Save / Load */}
       <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
+        <button
+          onClick={handleNewGraph}
+          style={{
+            padding: '4px 10px',
+            border: '1px solid #0D9488',
+            borderRadius: 6,
+            background: '#F0FDFA',
+            color: '#0D9488',
+            fontSize: 12,
+            cursor: 'pointer',
+            fontWeight: 500,
+          }}
+          title="新しいグラフを作成（現在のデータは削除されます）"
+        >
+          + 新規作成
+        </button>
         <button
           onClick={handleSave}
           style={{

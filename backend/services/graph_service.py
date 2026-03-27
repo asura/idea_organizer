@@ -4,6 +4,7 @@ from pathlib import Path
 
 from neomodel import db
 
+from backend.analytics.event_log import log_event
 from backend.models.nodes import ResearchNode
 from backend.models.relationships import ResearchRelationship
 from backend.schemas.edges import EdgeResponse
@@ -72,6 +73,13 @@ def get_neighborhood(uid: str, depth: int = 1) -> GraphResponse:
         edges.append(_rel_to_response(rel, source_uid, target_uid))
 
     return GraphResponse(nodes=nodes, edges=edges)
+
+
+def clear_graph() -> GraphResponse:
+    """Clear all nodes and edges, returning an empty graph."""
+    log_event("graph", "*", "clear")
+    db.cypher_query("MATCH (n:ResearchNode) DETACH DELETE n")
+    return GraphResponse(nodes=[], edges=[])
 
 
 def save_graph_to_file(file_path: str) -> int:

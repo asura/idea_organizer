@@ -31,3 +31,8 @@ export async function loadGraphFromFile(filePath: string): Promise<GraphData> {
   const { data } = await api.post('/graph/load', { file_path: filePath });
   return data;
 }
+
+export async function clearGraph(): Promise<GraphData> {
+  const { data } = await api.post('/graph/clear');
+  return data;
+}
