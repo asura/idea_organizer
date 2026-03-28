@@ -2,6 +2,8 @@
 
 from backend.models.enums import (
     Confidence,
+    DecisionStatus,
+    DecisionType,
     EdgeStatus,
     EdgeType,
     HypothesisStatus,
@@ -16,7 +18,8 @@ def test_node_types():
     assert NodeType.QUESTION == "question"
     assert NodeType.EVIDENCE == "evidence"
     assert NodeType.HYPOTHESIS == "hypothesis"
-    assert len(NodeType) == 6
+    assert NodeType.DECISION == "decision"
+    assert len(NodeType) == 7
 
 
 def test_edge_types():
@@ -45,6 +48,20 @@ def test_hypothesis_status():
     assert HypothesisStatus.REFUTED == "refuted"
     assert HypothesisStatus.REVISED == "revised"
     assert len(HypothesisStatus) == 5
+
+
+def test_decision_type():
+    assert DecisionType.ADOPT == "adopt"
+    assert DecisionType.HOLD == "hold"
+    assert DecisionType.REJECT == "reject"
+    assert DecisionType.PARK == "park"
+    assert len(DecisionType) == 4
+
+
+def test_decision_status():
+    assert DecisionStatus.ACTIVE == "active"
+    assert DecisionStatus.SUPERSEDED == "superseded"
+    assert len(DecisionStatus) == 2
 
 
 def test_edge_status():

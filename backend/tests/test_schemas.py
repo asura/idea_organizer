@@ -107,6 +107,19 @@ class TestNodeCreate:
         assert node.statement == "温度上昇により反応速度は指数的に増加する"
         assert node.confidence_level == "medium"
 
+    def test_full_create_decision(self):
+        node = NodeCreate(
+            title="分離＋後段fusionを採用",
+            node_type="decision",
+            decision_type="adopt",
+            rationale="学習速度と勾配消失の観点から最適",
+            review_trigger="新しい活性化関数の論文が出た場合",
+        )
+        assert node.node_type == "decision"
+        assert node.decision_type == "adopt"
+        assert node.rationale == "学習速度と勾配消失の観点から最適"
+        assert node.review_trigger == "新しい活性化関数の論文が出た場合"
+
     def test_optional_fields_default_to_none(self):
         node = NodeCreate(title="Minimal")
         assert node.description is None
@@ -116,6 +129,9 @@ class TestNodeCreate:
         assert node.category is None
         assert node.content is None
         assert node.statement is None
+        assert node.decision_type is None
+        assert node.rationale is None
+        assert node.review_trigger is None
 
     def test_missing_title_raises_validation_error(self):
         with pytest.raises(ValidationError) as exc_info:

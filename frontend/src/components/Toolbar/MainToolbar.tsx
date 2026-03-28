@@ -26,7 +26,7 @@ function SyncStatus() {
   );
 }
 
-const NODE_TYPES: NodeType[] = ['concept', 'paper', 'idea', 'question', 'evidence', 'hypothesis'];
+const NODE_TYPES: NodeType[] = ['concept', 'paper', 'idea', 'question', 'evidence', 'hypothesis', 'decision'];
 const NODE_BUTTON_COLORS: Record<NodeType, string> = {
   concept: '#3B82F6',
   paper: '#10B981',
@@ -34,6 +34,7 @@ const NODE_BUTTON_COLORS: Record<NodeType, string> = {
   question: '#EF4444',
   evidence: '#6B7280',
   hypothesis: '#8B5CF6',
+  decision: '#EA580C',
 };
 
 export function MainToolbar() {

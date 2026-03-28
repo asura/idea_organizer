@@ -10,6 +10,7 @@ class NodeType(StrEnum):
     QUESTION = "question"
     EVIDENCE = "evidence"
     HYPOTHESIS = "hypothesis"
+    DECISION = "decision"
 
 
 class EdgeType(StrEnum):
@@ -35,6 +36,18 @@ class HypothesisStatus(StrEnum):
     SUPPORTED = "supported"
     REFUTED = "refuted"
     REVISED = "revised"
+
+
+class DecisionType(StrEnum):
+    ADOPT = "adopt"
+    HOLD = "hold"
+    REJECT = "reject"
+    PARK = "park"
+
+
+class DecisionStatus(StrEnum):
+    ACTIVE = "active"
+    SUPERSEDED = "superseded"
 
 
 class EdgeStatus(StrEnum):

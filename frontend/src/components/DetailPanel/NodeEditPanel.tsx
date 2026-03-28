@@ -9,6 +9,7 @@ const NODE_TYPE_OPTIONS: { value: NodeType; label: string }[] = [
   { value: 'question', label: '論点' },
   { value: 'evidence', label: 'エビデンス' },
   { value: 'hypothesis', label: '仮説' },
+  { value: 'decision', label: '判断' },
 ];
 
 const IMPORTANCE_OPTIONS = ['high', 'medium', 'low'];
@@ -19,6 +20,7 @@ const READ_STATUS_OPTIONS = ['unread', 'skimmed', 'read', 'studied'];
 const STATUS_OPTIONS = ['draft', 'active', 'archived', 'resolved'];
 const HYPOTHESIS_STATUS_OPTIONS = ['draft', 'testing', 'supported', 'refuted', 'revised'];
 const CONFIDENCE_OPTIONS = ['high', 'medium', 'low'];
+const DECISION_TYPE_OPTIONS = ['adopt', 'hold', 'reject', 'park'];
 
 interface Props {
   nodeId: string;
@@ -145,6 +147,7 @@ function NodeEditForm({ nodeId, initialData, node, updateNode }: NodeEditFormPro
         {nodeType === 'question' && <QuestionFields form={form} setField={setField} />}
         {nodeType === 'evidence' && <EvidenceFields form={form} setField={setField} />}
         {nodeType === 'hypothesis' && <HypothesisFields form={form} setField={setField} />}
+        {nodeType === 'decision' && <DecisionFields form={form} setField={setField} />}
       </div>
 
       {/* Save button */}
@@ -330,6 +333,25 @@ function HypothesisFields({ form, setField }: FieldGroupProps) {
           <option value="">--</option>
           {HYPOTHESIS_STATUS_OPTIONS.map((v) => <option key={v} value={v}>{v}</option>)}
         </select>
+      </Field>
+    </>
+  );
+}
+
+function DecisionFields({ form, setField }: FieldGroupProps) {
+  return (
+    <>
+      <Field label="決定タイプ">
+        <select value={(form.decision_type as string) || ''} onChange={(e) => setField('decision_type', e.target.value)} style={inputStyle}>
+          <option value="">--</option>
+          {DECISION_TYPE_OPTIONS.map((v) => <option key={v} value={v}>{v}</option>)}
+        </select>
+      </Field>
+      <Field label="判断理由">
+        <textarea value={(form.rationale as string) || ''} onChange={(e) => setField('rationale', e.target.value)} style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} />
+      </Field>
+      <Field label="再評価トリガー">
+        <textarea value={(form.review_trigger as string) || ''} onChange={(e) => setField('review_trigger', e.target.value)} style={{ ...inputStyle, minHeight: 40, resize: 'vertical' }} />
       </Field>
     </>
   );

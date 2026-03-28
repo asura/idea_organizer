@@ -10,6 +10,7 @@ const PREFIX_MAP: Record<string, NodeType> = {
   'q:': 'question',
   'e:': 'evidence',
   'h:': 'hypothesis',
+  'd:': 'decision',
 };
 
 function parseInput(input: string): { title: string; nodeType: NodeType } {
@@ -100,7 +101,7 @@ export function QuickInput() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="ノード名を入力... (p: 文献, c: 概念, i: アイデア, q: 論点, e: エビデンス, h: 仮説)"
+          placeholder="ノード名を入力... (p: 文献, c: 概念, i: アイデア, q: 論点, e: エビデンス, h: 仮説, d: 判断)"
           style={{
             width: '100%',
             padding: '12px 16px',
@@ -125,6 +126,7 @@ export function QuickInput() {
           <span style={{ background: '#FEF2F2', padding: '2px 6px', borderRadius: 4, color: '#EF4444' }}>q: 論点</span>
           <span style={{ background: '#F9FAFB', padding: '2px 6px', borderRadius: 4, color: '#6B7280' }}>e: エビデンス</span>
           <span style={{ background: '#F5F3FF', padding: '2px 6px', borderRadius: 4, color: '#8B5CF6' }}>h: 仮説</span>
+          <span style={{ background: '#FFF7ED', padding: '2px 6px', borderRadius: 4, color: '#EA580C' }}>d: 判断</span>
           <span style={{ marginLeft: 'auto', color: '#D1D5DB' }}>Enter で追加 / Esc で閉じる</span>
         </div>
       </div>

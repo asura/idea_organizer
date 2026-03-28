@@ -72,6 +72,10 @@ def _node_to_response(node: ResearchNode) -> NodeResponse:
             if node.hypothesis_status and node.hypothesis_status != "draft"
             else None
         ),
+        # Decision-specific
+        decision_type=node.decision_type if node.decision_type else None,
+        rationale=node.rationale if node.rationale else None,
+        review_trigger=node.review_trigger if node.review_trigger else None,
     )
 
 

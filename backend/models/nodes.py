@@ -94,6 +94,13 @@ class ResearchNode(StructuredNode):
     hypothesis_status = StringProperty(default="draft")
 
     # ------------------------------------------------------------------
+    # Decision-specific
+    # ------------------------------------------------------------------
+    decision_type = StringProperty(default="")
+    rationale = StringProperty(default="")
+    review_trigger = StringProperty(default="")
+
+    # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
     connected_to = RelationshipTo(

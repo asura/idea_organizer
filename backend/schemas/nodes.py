@@ -59,6 +59,11 @@ class NodeCreate(BaseModel):
     confidence_level: str | None = None
     hypothesis_status: str | None = None
 
+    # Decision-specific
+    decision_type: str | None = None
+    rationale: str | None = None
+    review_trigger: str | None = None
+
 
 class NodeUpdate(BaseModel):
     """Payload for partially updating a research node."""
@@ -115,6 +120,11 @@ class NodeUpdate(BaseModel):
     testability_note: str | None = None
     confidence_level: str | None = None
     hypothesis_status: str | None = None
+
+    # Decision-specific
+    decision_type: str | None = None
+    rationale: str | None = None
+    review_trigger: str | None = None
 
 
 class NodeResponse(BaseModel):
@@ -175,3 +185,8 @@ class NodeResponse(BaseModel):
     testability_note: str | None = None
     confidence_level: str | None = None
     hypothesis_status: str | None = None
+
+    # Decision-specific
+    decision_type: str | None = None
+    rationale: str | None = None
+    review_trigger: str | None = None

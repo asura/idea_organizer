@@ -102,6 +102,8 @@ export function GraphCanvas() {
               idea: '#F59E0B',
               question: '#EF4444',
               evidence: '#6B7280',
+              hypothesis: '#8B5CF6',
+              decision: '#EA580C',
             };
             const nodeType = (node.data as Record<string, unknown>)?.node_type as string;
             return colors[nodeType] || '#6B7280';

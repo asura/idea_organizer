@@ -1,5 +1,5 @@
 // ノードタイプ
-export type NodeType = 'concept' | 'paper' | 'idea' | 'question' | 'evidence' | 'hypothesis';
+export type NodeType = 'concept' | 'paper' | 'idea' | 'question' | 'evidence' | 'hypothesis' | 'decision';
 
 // 研究ノード (backendのNodeResponseに対応)
 export interface ResearchNodeData {
@@ -51,6 +51,10 @@ export interface ResearchNodeData {
   testability_note?: string;
   confidence_level?: string;
   hypothesis_status?: string;
+  // Decision
+  decision_type?: string;
+  rationale?: string;
+  review_trigger?: string;
 }
 
 export interface NodeCreateData {
