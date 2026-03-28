@@ -3,6 +3,7 @@ import { useGraphStore, useTemporalStore } from '../../store/graphStore';
 import { useUIStore } from '../../store/uiStore';
 import { NODE_ICONS, NODE_TYPE_LABELS } from '../../utils/colors';
 import type { NodeType } from '../../types/node';
+import { LayoutControls } from './LayoutControls';
 
 function SyncStatus() {
   const pendingOps = useGraphStore((s) => s.pendingOps);
@@ -227,6 +228,9 @@ export function MainToolbar() {
           ↪
         </button>
       </div>
+
+      {/* Layout controls */}
+      <LayoutControls />
 
       {/* New Graph / Save / Load */}
       <div style={{ display: 'flex', gap: 4, marginLeft: 8 }}>

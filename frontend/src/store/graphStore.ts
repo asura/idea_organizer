@@ -16,6 +16,7 @@ import type { ResearchEdgeData, EdgeCreateData, EdgeUpdateData } from '../types/
 import * as nodesApi from '../api/nodes.ts';
 import * as edgesApi from '../api/edges.ts';
 import * as graphApi from '../api/graph.ts';
+import { computeConnectedNodePosition } from '../layout/smartPlacement.ts';
 
 // React Flow node with our data
 export type RFNode = Node<ResearchNodeData>;
@@ -57,7 +58,7 @@ interface GraphState {
 
   // Async CRUD actions (API-backed)
   loadGraph: () => Promise<void>;
-  addNode: (data: NodeCreateData, position?: { x: number; y: number }) => Promise<RFNode | null>;
+  addNode: (data: NodeCreateData, position?: { x: number; y: number }, connectedToNodeId?: string) => Promise<RFNode | null>;
   updateNode: (uid: string, data: NodeUpdateData) => Promise<void>;
   removeNode: (uid: string) => Promise<void>;
   addEdge: (data: EdgeCreateData) => Promise<void>;
@@ -159,9 +160,17 @@ export const useGraphStore = create<GraphState>()(temporal((set, get) => ({
     done();
   },
 
-  addNode: async (createData, position) => {
+  addNode: async (createData, position, connectedToNodeId) => {
     const done = perfStart('addNode');
-    const pos = position || { x: Math.random() * 500, y: Math.random() * 500 };
+    let pos = position || { x: Math.random() * 500, y: Math.random() * 500 };
+
+    // Smart placement: position near the connected node if specified
+    if (!position && connectedToNodeId) {
+      const sourceNode = get().nodes.find((n) => n.id === connectedToNodeId);
+      if (sourceNode) {
+        pos = computeConnectedNodePosition(sourceNode, get().nodes);
+      }
+    }
     // Optimistic: add temp node to UI immediately
     const tempId = generateTempId();
     const now = new Date().toISOString();

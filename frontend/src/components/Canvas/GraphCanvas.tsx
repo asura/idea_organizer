@@ -6,6 +6,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useGraphStore } from '../../store/graphStore';
 import { useUIStore } from '../../store/uiStore';
+import { useForceLayout } from '../../hooks/useForceLayout';
 import { CustomNode } from './CustomNode';
 import { CustomEdge } from './CustomEdge';
 import { ContextMenu } from './ContextMenu';
@@ -21,6 +22,22 @@ const edgeTypes: EdgeTypes = {
 export function GraphCanvas() {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, removeNode, removeEdge } = useGraphStore();
   const { openContextMenu, closeContextMenu, contextMenu, clearSelection } = useUIStore();
+  const { pinNode } = useForceLayout();
+
+  const handleNodeDragStart = useCallback(
+    (_event: ReactMouseEvent, node: Node) => {
+      pinNode(node.id, node.position.x, node.position.y);
+    },
+    [pinNode],
+  );
+
+  const handleNodeDrag = useCallback(
+    (_event: ReactMouseEvent, node: Node) => {
+      pinNode(node.id, node.position.x, node.position.y);
+    },
+    [pinNode],
+  );
+
 
   const handlePaneDoubleClick = useCallback(
     (event: ReactMouseEvent) => {
@@ -82,6 +99,8 @@ export function GraphCanvas() {
         onDoubleClick={handlePaneDoubleClick}
         onNodesDelete={handleNodesDelete}
         onEdgesDelete={handleEdgesDelete}
+        onNodeDragStart={handleNodeDragStart}
+        onNodeDrag={handleNodeDrag}
         onNodeContextMenu={handleNodeContextMenu}
         onEdgeContextMenu={handleEdgeContextMenu}
         onPaneClick={handlePaneClick}
