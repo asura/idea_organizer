@@ -3,6 +3,45 @@
 研究アイデアを **プロパティグラフ** として整理する個人用ツール。
 概念・文献・アイデア・論点・エビデンス・仮説・判断とその関係を、曖昧さ・確信度を保ったまま可視化・編集できる。
 
+## 前提条件
+
+| ツール | バージョン | 用途 |
+|--------|-----------|------|
+| **Python** | 3.12 以上 | Backend (FastAPI, neomodel) |
+| **uv** | 最新推奨 | Python パッケージ管理・実行 |
+| **Node.js** | 18 以上 | Frontend (React + Vite) |
+| **Podman** または **Docker** | — | Neo4j コンテナの起動 |
+| **Git** | — | リポジトリのクローン |
+
+### インストール例 (Ubuntu / WSL2)
+
+```bash
+# Python 3.12 (Ubuntu 22.04 はデフォルト 3.10 のため追加が必要)
+sudo apt update && sudo apt install -y python3.12 python3.12-venv
+
+# uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Node.js (nvm 経由)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+source ~/.bashrc && nvm install --lts
+
+# Podman
+sudo apt install -y podman
+```
+
+### 初回セットアップ
+
+```bash
+git clone <repo-url> && cd idea_organizer
+uv sync                       # Python 依存関係
+cd frontend && npm install    # Node 依存関係
+cd ..
+```
+
+> **Note:** `.env` ファイルの作成は不要です。デフォルト設定で動作します。
+> 接続先やパスワードを変更したい場合のみ `cp .env.example .env` して編集してください。
+
 ## クイックスタート
 
 ```bash
